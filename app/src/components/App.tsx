@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { CommandHandler } from "./CommandHandler";
 import CommandInput from "./CommandInput";
 import CommandHistory from "./CommandHistory";
 import DisplayData from "./DisplayData";
@@ -7,7 +8,7 @@ import { mockedData, CsvData } from "../components/MockedJson";
 /**
  * Checks if a given key is a valid key of the current CSV data. We need this so it can work flexibly with
  * different CSVs with different keys and columns.
- * @param {string} key. The key to check!
+ * @param {string} key The key to check!
  * @param {CsvData | undefined} sampleData A sample of the current CSV data to check against to allow for dynamic processing.
  * @returns {boolean} True if the key exists in the sample data; otherwise, false.
  */
@@ -17,6 +18,7 @@ function isKeyOfCurrentData(
 ): key is keyof CsvData {
   return sampleData ? key in sampleData : false;
 }
+
 /**
  * The main application component that provides a command prompt interface for interacting with CSV data.
  */
@@ -29,9 +31,10 @@ const App: React.FC = () => {
   const [currentData, setCurrentData] = useState<CsvData[]>([]);
   const [searchResults, setSearchResults] = useState<CsvData[]>([]);
   const [isLoggedin, setIsLoggedIn] = useState(false);
+  const commandHandler = new CommandHandler();
 
   /**
-   * Handler for login button, with indication given if a user is logged in
+   * Handler for the login button.
    */
   const handleLogin = () => {
     setIsLoggedIn(true);
@@ -46,31 +49,41 @@ const App: React.FC = () => {
   };
 
   /**
-   * Executes the current command entered by the user.
+   * Registers the commands. Commands can be added or modified by web developers here.
    */
-  const executeCommand = () => {
-    let output = "";
-    if (command.startsWith("mode ")) {
-      const newMode = command.split(" ")[1];
+  useEffect(() => {
+    commandHandler.registerCommand("mode", (args: Array<string>) => {
+      const newMode = args[0];
       if (newMode === "brief" || newMode === "verbose") {
         setMode(newMode);
-        output = `Mode set to ${newMode}`;
+        return `Mode set to ${newMode}`;
+      } else {
+        return "Invalid mode";
       }
-    } else if (command.startsWith("load_file ")) {
-      const filePath = command.split(" ")[1];
+    });
+
+    // Registering the load file command
+    commandHandler.registerCommand("load_file", (args: Array<string>) => {
+      const filePath = args[0];
       const data = mockedData[filePath];
       if (data) {
         setCurrentData(data);
         // Do not clear searchResults here to allow 'view' command to control the display
-        output = `Loaded data from ${filePath}`;
+        return `Loaded data from ${filePath}`;
       } else {
-        output = "File not found";
+        return "File not found";
       }
-    } else if (command === "view") {
-      // Display the loaded data by setting searchResults to currentData
+    });
+
+    // Registering the view command
+    commandHandler.registerCommand("view", () => {
       setSearchResults(currentData);
-      output = "Displaying loaded data...";
-    } else if (command.startsWith("search ")) {
+      // Display the loaded data by setting searchResults to currentData
+      return "Displaying loaded data...";
+    });
+
+    // Registering the search command
+    commandHandler.registerCommand("search", (args: Array<string>) => {
       const regex = /^search (\w+)\s+(.+)$/;
       const match = command.match(regex);
       if (match) {
@@ -84,17 +97,36 @@ const App: React.FC = () => {
           });
           if (searchData.length > 0) {
             setSearchResults(searchData);
-            output = `Found ${searchData.length} results for "${value}" in ${column}`;
+            return `Found ${searchData.length} results for "${value}" in ${column}`;
           } else {
             setSearchResults([]);
-            output = `No results found for "${value}" in ${column}`;
+            return `No results found for "${value}" in ${column}`;
           }
         } else {
-          output = `Invalid column name "${column}".`;
+          return `Invalid column name "${column}".`;
         }
       } else {
-        output = "Invalid search format. Please use 'search <column> <value>'.";
+        return "Invalid search format. Please use 'search <column> <value>'.";
       }
+    });
+  });
+
+  /**
+   * Executes the current command entered by the user.
+   */
+  const executeCommand = async () => {
+    let output = "";
+    if (command.startsWith("mode ")) {
+      const args = command.split(" ").slice(1);
+      output = await commandHandler.executeCommand("mode", args);
+    } else if (command.startsWith("load_file ")) {
+      const args = command.split(" ").slice(1);
+      output = await commandHandler.executeCommand("load_file", args);
+    } else if (command === "view") {
+      output = await commandHandler.executeCommand("view", []);
+    } else if (command.startsWith("search ")) {
+      const args = command.split(" ").slice(1);
+      output = await commandHandler.executeCommand("search", args);
     }
     addToHistory(command, output);
     setCommand("");
@@ -110,26 +142,26 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-        {!isLoggedin? (
-            <div>
-                <h1>Welcome, please log in.</h1>
-                <button onClick={handleLogin}>Login</button>
-            </div>
-        ) : (
-            <div>
-                <h1>Command Prompt Interface</h1>
-                <h2>You are logged in</h2>
-                <CommandInput
-                command={command}
-                onCommandChange={handleCommandInput}
-                onExecuteCommand={executeCommand}
-                />
-                <CommandHistory history={history} mode={mode} />
-                <DisplayData
-                data={searchResults.length > 0 ? searchResults : searchResults}
-                />
-            </div>
-        )}
+      {!isLoggedin ? (
+        <div>
+          <h1>Welcome, please log in.</h1>
+          <button onClick={handleLogin}>Login</button>
+        </div>
+      ) : (
+        <div>
+          <h1>Command Prompt Interface</h1>
+          <h2>You are logged in</h2>
+          <CommandInput
+            command={command}
+            onCommandChange={handleCommandInput}
+            onExecuteCommand={executeCommand}
+          />
+          <CommandHistory history={history} mode={mode} />
+          <DisplayData
+            data={searchResults.length > 0 ? searchResults : searchResults}
+          />
+        </div>
+      )}
     </div>
   );
 };
