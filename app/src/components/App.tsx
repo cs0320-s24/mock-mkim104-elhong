@@ -114,23 +114,20 @@ const App: React.FC = () => {
   /**
    * Executes the current command entered by the user.
    */
-  const executeCommand = async () => {
-    let output = "";
-    if (command.startsWith("mode ")) {
-      const args = command.split(" ").slice(1);
-      output = await commandHandler.executeCommand("mode", args);
-    } else if (command.startsWith("load_file ")) {
-      const args = command.split(" ").slice(1);
-      output = await commandHandler.executeCommand("load_file", args);
-    } else if (command === "view") {
-      output = await commandHandler.executeCommand("view", []);
-    } else if (command.startsWith("search ")) {
-      const args = command.split(" ").slice(1);
-      output = await commandHandler.executeCommand("search", args);
-    }
-    addToHistory(command, output);
-    setCommand("");
+  const executeCommand = async () => { 
+    const parts = command.split(' '); 
+    const commandName = parts.shift() || '';
+    const args = parts; 
+    const output = commandHandler.executeCommand(commandName, args);
+    setHistory(history => 
+        [...history, { command, result: typeof output === 'string' ? output : '' }]); 
+        setCommand(''); 
+      
+    addToHistory(command, await output);
+    setCommand('');
   };
+
+        
   /**
    * Adds the executed command and its result to the history.
    * @param {string} command The command that was executed.
