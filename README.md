@@ -26,4 +26,5 @@ To build and run our program, end users of our web application must first login 
 For web developers using our command-prompt library, they can begin our program by running `npm start` or `yarn start` in the terminal. If they wish to do so, they can personalize commands within the App class.
 
 # Collaboration
-*(state all of your sources of collaboration past your project partner. Please refer to the course's collaboration policy for any further questions.)*
+
+_(state all of your sources of collaboration past your project partner. Please refer to the course's collaboration policy for any further questions.)_
