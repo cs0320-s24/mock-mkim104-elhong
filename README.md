@@ -5,7 +5,7 @@ Project name: Mock
 
 Team members: mkim104 and elhong
 
-Total estimate time: -- hours
+Total estimate time: 9 hours
 
 Github repo link: https://github.com/cs0320-s24/mock-mkim104-elhong.git
 
@@ -24,9 +24,6 @@ First, the CommandHandler component employs a Map data structure to associate co
 
 In addition, we have structured our Mocked JSON files to support dynamic CSV datasets with varying structures. By defining TypeScript types for CsvData and MockedData, we enable flexibility in representing datasets with different column names and types. This approach allows us to simulate diverse real-world scenarios, allowing for robust testing and adaptability to varying data structures.
 
-... [add anything?]
-
-
 # Errors/Bugs
 We currently have not identified any errors or bugs related to our code. However, the extent of the edge cases we considered ins limited. For instance, we considered the case where a CSV file data entry is an empty string, but we did not consider the scenario where the CSV file itself is malformed with inconsistent row or column sizes. Therefore, there risks to be errors for these types of extreme cases. But, for the purposes of this sprint, we have rigorously tested our functionality and found no major errors. 
 
@@ -39,9 +36,9 @@ To run the tests, navigate to the "tests/e2e" folder in your terminal and run "n
 
 To build and run our program, end users of our web application must first login by clicking the login button. This will bring them to the second page, where they can enter the following commands into the command prompt:
 
-1. load_file <csv-file-path>
+1. load_file + [csv-file-path]
 2. view
-3. search <column> <value>
+3. search + [column] + [value]
 
 Users can also change the formatting of the command history output by entering "mode brief" or "mode verbose" into the command line.
 
