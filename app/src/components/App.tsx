@@ -5,6 +5,7 @@ import CommandHistory from "./CommandHistory";
 import DisplayData from "./DisplayData";
 import { mockedData, CsvData } from "../components/MockedJson";
 
+// Other imports and utility functions...
 /**
  * Checks if a given key is a valid key of the current CSV data. We need this so it can work flexibly with
  * different CSVs with different keys and columns.
@@ -23,16 +24,17 @@ function isKeyOfCurrentData(
  * The main application component that provides a command prompt interface for interacting with CSV data.
  */
 const App: React.FC = () => {
-  const [command, setCommand] = useState("");
-  const [history, setHistory] = useState<
-    Array<{ command: string; result: string }>
-  >([]);
-  const [mode, setMode] = useState("brief");
-  const [currentData, setCurrentData] = useState<CsvData[]>([]);
-  const [searchResults, setSearchResults] = useState<CsvData[]>([]);
-  const [isLoggedin, setIsLoggedIn] = useState(false);
-  const commandHandler = new CommandHandler();
+    const [command, setCommand] = useState("");
+    const [history, setHistory] = useState<
+      Array<{ command: string; result: string, verboseResult?: string }>
+    >([]);
+    const [mode, setMode] = useState("brief");
+    const [currentData, setCurrentData] = useState<CsvData[]>([]);
+    const [searchResults, setSearchResults] = useState<CsvData[]>([]);
+    const [isLoggedin, setIsLoggedIn] = useState(false);
+    const commandHandler = new CommandHandler();
 
+  
   /**
    * Handler for the login button.
    */
@@ -77,10 +79,16 @@ const App: React.FC = () => {
 
     // Registering the view command
     commandHandler.registerCommand("view", () => {
-      setSearchResults(currentData);
-      // Display the loaded data by setting searchResults to currentData
-      return "Displaying loaded data...";
+        if (currentData.length === 0) {
+          // No data is currently loaded, so return a message indicating that
+          return "File not loaded or contains no data.";
+        } else {
+          // Data is available, so display it by setting searchResults to currentData
+          setSearchResults(currentData);
+          return "Displaying loaded data...";
+        }
     });
+      
 
     // Registering the search command
     commandHandler.registerCommand("search", (args: Array<string>) => {
@@ -118,23 +126,27 @@ const App: React.FC = () => {
     const parts = command.split(' '); 
     const commandName = parts.shift() || '';
     const args = parts; 
-    const output = commandHandler.executeCommand(commandName, args);
-    setHistory(history => 
-        [...history, { command, result: typeof output === 'string' ? output : '' }]); 
-        setCommand(''); 
-      
-    addToHistory(command, await output);
-    setCommand('');
+    const outputPromise = commandHandler.executeCommand(commandName, args);
+    const output = await outputPromise; // Adjust based on the actual implementation
+
+    if (mode === "verbose") {
+      // In verbose mode, add both command and output to history, displayed on separate lines
+      addToHistory(command, output, `Command: ${command}\nOutput: ${output}`);
+    } else {
+      // In brief mode, just add the output
+      addToHistory(command, output);
+    }
+    setCommand(''); 
   };
 
-        
   /**
-   * Adds the executed command and its result to the history.
+   * Adds the executed command and its result to the history, with optional verbose formatting.
    * @param {string} command The command that was executed.
    * @param {string} result The result of the executed command.
+   * @param {string} [verboseResult] Optional formatted result for verbose mode.
    */
-  const addToHistory = (command: string, result: string) => {
-    setHistory((history) => [...history, { command, result }]);
+  const addToHistory = (command: string, result: string, verboseResult?: string) => {
+    setHistory((history) => [...history, { command, result, verboseResult: verboseResult || result }]);
   };
 
   return (
