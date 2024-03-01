@@ -18,7 +18,7 @@ interface DisplayDataProps {
  * @returns {JSX.Element} The rendered table containing the CSV data.
  */
 const DisplayData: React.FC<DisplayDataProps> = ({ data }) => {
-  if (data.length === 0) return <p>No data to display.</p>;
+  if (data.length === 0) return <p>Please load and view a csv.</p>;
 
   // Extract column headers
   const headers = Object.keys(data[0]);

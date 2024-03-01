@@ -32,6 +32,7 @@ const App: React.FC = () => {
     const [currentData, setCurrentData] = useState<CsvData[]>([]);
     const [searchResults, setSearchResults] = useState<CsvData[]>([]);
     const [isLoggedin, setIsLoggedIn] = useState(false);
+    const [dataLoaded, setDataLoaded] = useState(false); // Add state to track if data has been loaded
     const commandHandler = new CommandHandler();
 
   
@@ -66,30 +67,27 @@ const App: React.FC = () => {
 
     // Registering the load file command
     commandHandler.registerCommand("load_file", (args: Array<string>) => {
-      const filePath = args[0];
-      const data = mockedData[filePath];
-      if (data) {
-        setCurrentData(data);
-        // Do not clear searchResults here to allow 'view' command to control the display
-        return `Loaded data from ${filePath}`;
-      } else {
-        return "File not found";
-      }
-    });
-
-    // Registering the view command
-    commandHandler.registerCommand("view", () => {
-        if (currentData.length === 0) {
-          // No data is currently loaded, so return a message indicating that
-          return "File not loaded or contains no data.";
+        const filePath = args[0];
+        const data = mockedData[filePath];
+        if (data) {
+          setCurrentData(data);
+          setDataLoaded(true); // Set dataLoaded to true when data is successfully loaded
+          return `Loaded data from ${filePath}`;
         } else {
-          // Data is available, so display it by setting searchResults to currentData
-          setSearchResults(currentData);
-          return "Displaying loaded data...";
+          setDataLoaded(false); // Optionally set to false if load fails, depending on desired behavior
+          return "File not found";
         }
-    });
-      
-
+      });
+      // Registering the view  command
+      commandHandler.registerCommand("view", () => {
+          if (!dataLoaded) { // Check if data has been loaded instead of checking currentData's length
+            return "No file has been loaded yet.";
+          } else {
+            setSearchResults(currentData);
+            return "Displaying loaded data...";
+          }
+      });
+    
     // Registering the search command
     commandHandler.registerCommand("search", (args: Array<string>) => {
       const regex = /^search (\w+)\s+(.+)$/;

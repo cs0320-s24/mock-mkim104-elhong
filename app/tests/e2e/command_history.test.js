@@ -36,7 +36,7 @@ test.describe('Command Prompt Interface Application', () => {
     await page.keyboard.press('Enter');
     
     // Verify the command result is correctly displayed in brief mode
-    await expect(page.locator('text=File not loaded or contains no data.')).toBeVisible();
+    await expect(page.locator('text=No file has been loaded yet.')).toBeVisible();
   });
 
   // Verifying Command History in Verbose Mode with Loading File
