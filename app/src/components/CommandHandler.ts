@@ -19,6 +19,15 @@ export class CommandHandler {
     }
 
     /**
+     * Checks if a command is registered.
+     * @param {string} name The name of the command to check.
+     * @returns {boolean} True if the command is registered, false otherwise.
+     */
+    isCommandRegistered(name: string): boolean {
+        return this.commands.has(name);
+    }
+
+    /**
      * Executes the command associated with the given name.
      * @param {string} name The name of the command to execute.
      * @param {string[]} args The arguments to pass to the command function.
@@ -32,5 +41,4 @@ export class CommandHandler {
         }
         return `Error: Command "${name}" not found.`;
     }
-
 }
