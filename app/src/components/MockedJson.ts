@@ -1,14 +1,18 @@
 // src/mockedJson.ts
+
+/** Represents the structure of a single CSV data entry. */
 export interface CsvData {
   id: number;
   address: string;
   value: string;
 }
 
+/** Represents a collection of CSV data grouped by dataset name. */
 export interface MockedData {
   [key: string]: CsvData[];
 }
 
+/** Mocked CSV datasets. */
 export const mockedData: MockedData = {
   "dataset1.csv": [
     { id: 1, address: "123 Main St", value: "$300,000" },
