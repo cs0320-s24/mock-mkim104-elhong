@@ -3,7 +3,8 @@ import { CommandHandler } from "./CommandHandler";
 import CommandInput from "./CommandInput";
 import CommandHistory from "./CommandHistory";
 import DisplayData from "./DisplayData";
-import { mockedData, CsvData } from "../components/MockedJson";
+import { mockedData, CsvData } from "../components/MockedJson"; // Ensure CsvData is correctly imported with its new flexible definition
+
 
 // Other imports and utility functions...
 /**
@@ -14,11 +15,11 @@ import { mockedData, CsvData } from "../components/MockedJson";
  * @returns {boolean} True if the key exists in the sample data; otherwise, false.
  */
 function isKeyOfCurrentData(
-  key: string,
-  sampleData: CsvData | undefined
-): key is keyof CsvData {
-  return sampleData ? key in sampleData : false;
-}
+    key: string,
+    sampleData: CsvData | undefined
+  ): boolean {
+    return sampleData ? key in sampleData : false;
+  }
 
 /**
  * The main application component that provides a command prompt interface for interacting with CSV data.
@@ -32,9 +33,8 @@ const App: React.FC = () => {
     const [currentData, setCurrentData] = useState<CsvData[]>([]);
     const [searchResults, setSearchResults] = useState<CsvData[]>([]);
     const [isLoggedin, setIsLoggedIn] = useState(false);
-    const [dataLoaded, setDataLoaded] = useState(false); // Add state to track if data has been loaded
+    const [dataLoaded, setDataLoaded] = useState(false);
     const commandHandler = new CommandHandler();
-
   
   /**
    * Handler for the login button.
@@ -90,32 +90,31 @@ const App: React.FC = () => {
     
     // Registering the search command
     commandHandler.registerCommand("search", (args: Array<string>) => {
-      const regex = /^search (\w+)\s+(.+)$/;
-      const match = command.match(regex);
-      if (match) {
-        const column = match[1];
-        const value = match[2].toLowerCase();
-        // Use the first item of currentData as a sample for key validation
-        if (isKeyOfCurrentData(column, currentData[0])) {
-          const searchData = currentData.filter((row) => {
-            const cellValue = row[column]?.toString().toLowerCase();
-            return cellValue?.includes(value);
-          });
-          if (searchData.length > 0) {
-            setSearchResults(searchData);
-            return `Found ${searchData.length} results for "${value}" in ${column}`;
+        const commandPattern = `search ${args[0]} ${args.slice(1).join(' ')}`;
+        const regex = /^search (\w+)\s+(.+)$/;
+        const match = commandPattern.match(regex);
+        if (match) {
+          const column = match[1];
+          const value = match[2].toLowerCase();
+          if (isKeyOfCurrentData(column, currentData[0])) {
+            const searchData = currentData.filter((row) => {
+              const cellValue = row[column]?.toString().toLowerCase();
+              return cellValue && cellValue.includes(value);
+            });
+            if (searchData.length > 0) {
+              setSearchResults(searchData);
+              return `Found ${searchData.length} results for "${value}" in ${column}`;
+            } else {
+              return `No results found for "${value}" in ${column}`;
+            }
           } else {
-            setSearchResults([]);
-            return `No results found for "${value}" in ${column}`;
+            return `Invalid column name "${column}".`;
           }
         } else {
-          return `Invalid column name "${column}".`;
+          return "Invalid search format. Please use 'search <column> <value>'.";
         }
-      } else {
-        return "Invalid search format. Please use 'search <column> <value>'.";
-      }
+      });
     });
-  });
 
   /**
    * Executes the current command entered by the user.

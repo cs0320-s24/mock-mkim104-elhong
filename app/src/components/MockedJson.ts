@@ -1,27 +1,23 @@
 // src/mockedJson.ts
 
-/** Represents the structure of a single CSV data entry. */
-export interface CsvData {
-  id: number;
-  address: string;
-  value: string;
-}
+/** Represents a single CSV data entry as a key-value pair where the key is the column name. */
+export type CsvData = {
+  [key: string]: string | number;
+};
 
-/** Represents a collection of CSV data grouped by dataset name. */
-export interface MockedData {
-  [key: string]: CsvData[];
-}
+/** Represents a collection of CSV data grouped by dataset name, allowing for dynamic column names and types. */
+export type MockedData = {
+  [datasetName: string]: CsvData[];
+};
 
-/** Mocked CSV datasets. */
+/** Mocked CSV datasets with dynamic structures. */
 export const mockedData: MockedData = {
   "dataset1.csv": [
-    { id: 1, address: "123 Main St", value: "$300,000" },
+    { id: 1, address: "123 Main St", value: 300000},
   ],
   "dataset2.csv": [
-    { id: 1, address: "789 Pine St", value: "$400,000" },
-    { id: 2, address: "200 Bronx St", value: "$300,000" },
-    { id: 3, address: "434 Providence St", value: "$200,000" },
-    { id: 4, address: "42 Jern St", value: "$100,000" },
-    { id: 5, address: "432 Elmer St", value: "$400,000" },
+    { id: 1, address: "789 Pine St", value: 400000 },
+    { id: 2, address: "200 Bronx St", value: 300000},
   ],
+  // Additional datasets
 };
