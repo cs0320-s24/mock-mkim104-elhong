@@ -165,8 +165,9 @@ const App: React.FC = () => {
         </div>
       ) : (
         <div>
-          <h1>Command Prompt Interface</h1>
-          <h2>You are logged in</h2>
+          <h1>Mock</h1>
+          <h2>[You are logged in]</h2>
+          <h3> Welcome! In the command line below, you can load, view, and search a given file:</h3>
           <CommandInput
             command={command}
             onCommandChange={handleCommandInput}
