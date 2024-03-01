@@ -19,5 +19,14 @@ export const mockedData: MockedData = {
     { id: 1, address: "789 Pine St", value: 400000 },
     { id: 2, address: "200 Bronx St", value: 300000},
   ],
-  // Additional datasets
+  "dataset3.csv": [
+    { id: 1},
+    { id: 2},
+    { id: 3},
+  ],
+  "dataset4.csv": [
+    { id: 1, address: " ", value: 400000 },
+    { id: 2, address: " ", value: 300000},
+    { id: 2, address: "240 Brook St", value: 300000},
+  ]
 };

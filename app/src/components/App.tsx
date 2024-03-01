@@ -5,7 +5,6 @@ import CommandHistory from "./CommandHistory";
 import DisplayData from "./DisplayData";
 import { mockedData, CsvData } from "../components/MockedJson"; // Ensure CsvData is correctly imported with its new flexible definition
 
-
 // Other imports and utility functions...
 /**
  * Checks if a given key is a valid key of the current CSV data. We need this so it can work flexibly with
@@ -15,27 +14,27 @@ import { mockedData, CsvData } from "../components/MockedJson"; // Ensure CsvDat
  * @returns {boolean} True if the key exists in the sample data; otherwise, false.
  */
 function isKeyOfCurrentData(
-    key: string,
-    sampleData: CsvData | undefined
-  ): boolean {
-    return sampleData ? key in sampleData : false;
-  }
+  key: string,
+  sampleData: CsvData | undefined
+): boolean {
+  return sampleData ? key in sampleData : false;
+}
 
 /**
  * The main application component that provides a command prompt interface for interacting with CSV data.
  */
 const App: React.FC = () => {
-    const [command, setCommand] = useState("");
-    const [history, setHistory] = useState<
-      Array<{ command: string; result: string, verboseResult?: string }>
-    >([]);
-    const [mode, setMode] = useState("brief");
-    const [currentData, setCurrentData] = useState<CsvData[]>([]);
-    const [searchResults, setSearchResults] = useState<CsvData[]>([]);
-    const [isLoggedin, setIsLoggedIn] = useState(false);
-    const [dataLoaded, setDataLoaded] = useState(false);
-    const commandHandler = new CommandHandler();
-  
+  const [command, setCommand] = useState("");
+  const [history, setHistory] = useState<
+    Array<{ command: string; result: string; verboseResult?: string }>
+  >([]);
+  const [mode, setMode] = useState("brief");
+  const [currentData, setCurrentData] = useState<CsvData[]>([]);
+  const [searchResults, setSearchResults] = useState<CsvData[]>([]);
+  const [isLoggedin, setIsLoggedIn] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const commandHandler = new CommandHandler();
+
   /**
    * Handler for the login button.
    */
@@ -67,36 +66,40 @@ const App: React.FC = () => {
 
     // Registering the load file command
     commandHandler.registerCommand("load_file", (args: Array<string>) => {
-        const filePath = args[0];
-        const data = mockedData[filePath];
-        if (data) {
-          setCurrentData(data);
-          setDataLoaded(true); // Set dataLoaded to true when data is successfully loaded
-          return `Loaded data from ${filePath}`;
-        } else {
-          setDataLoaded(false); // Optionally set to false if load fails, depending on desired behavior
-          return "File not found";
-        }
-      });
-      // Registering the view  command
-      commandHandler.registerCommand("view", () => {
-          if (!dataLoaded) { // Check if data has been loaded instead of checking currentData's length
-            return "No file has been loaded yet.";
-          } else {
-            setSearchResults(currentData);
-            return "Displaying loaded data...";
-          }
-      });
-    
+      const filePath = args[0];
+      const data = mockedData[filePath];
+      if (data) {
+        setCurrentData(data);
+        setDataLoaded(true); // Set dataLoaded to true when data is successfully loaded
+        return `Loaded data from ${filePath}`;
+      } else {
+        setDataLoaded(false); // Optionally set to false if load fails, depending on desired behavior
+        return "File not found";
+      }
+    });
+    // Registering the view  command
+    commandHandler.registerCommand("view", () => {
+      if (!dataLoaded) {
+        // Check if data has been loaded instead of checking currentData's length
+        return "No file has been loaded yet.";
+      } else {
+        setSearchResults(currentData);
+        return "Displaying loaded data...";
+      }
+    });
+
     // Registering the search command
     commandHandler.registerCommand("search", (args: Array<string>) => {
-        const commandPattern = `search ${args[0]} ${args.slice(1).join(' ')}`;
+        const commandPattern = `search ${args[0]} ${args.slice(1).join(" ")}`;
         const regex = /^search (\w+)\s+(.+)$/;
         const match = commandPattern.match(regex);
         if (match) {
+          if(match[2] == " "){
+            return "Invalid search format. CSV file is misformed.";
+          }
           const column = match[1];
           const value = match[2].toLowerCase();
-          if (isKeyOfCurrentData(column, currentData[0])) {
+           if (isKeyOfCurrentData(column, currentData[0])) {
             const searchData = currentData.filter((row) => {
               const cellValue = row[column]?.toString().toLowerCase();
               return cellValue && cellValue.includes(value);
@@ -113,22 +116,23 @@ const App: React.FC = () => {
         } else {
           return "Invalid search format. Please use 'search <column> <value>'.";
         }
-      });
-    });
+      }
+    );
+  });
 
   /**
    * Executes the current command entered by the user.
    */
-  const executeCommand = async () => { 
-    const parts = command.split(' '); 
-    const commandName = parts.shift() || '';
-    const args = parts; 
-  
+  const executeCommand = async () => {
+    const parts = command.split(" ");
+    const commandName = parts.shift() || "";
+    const args = parts;
+
     // Check if the command is registered
     if (commandHandler.isCommandRegistered(commandName)) {
       const outputPromise = commandHandler.executeCommand(commandName, args);
       const output = await outputPromise; // Adjust based on the actual implementation
-  
+
       if (mode === "verbose") {
         // In verbose mode, add both command and output to history, displayed on separate lines
         addToHistory(command, output, `Command: ${command}\nOutput: ${output}`);
@@ -139,11 +143,14 @@ const App: React.FC = () => {
     } else {
       // Handle unregistered commands by adding a specific message to the history
       const errorMessage = "Unrecognized command";
-      addToHistory(command, errorMessage, `Command: ${command}\nOutput: ${errorMessage}`);
+      addToHistory(
+        command,
+        errorMessage,
+        `Command: ${command}\nOutput: ${errorMessage}`
+      );
     }
-    setCommand(''); 
+    setCommand("");
   };
-  
 
   /**
    * Adds the executed command and its result to the history, with optional verbose formatting.
@@ -151,8 +158,15 @@ const App: React.FC = () => {
    * @param {string} result The result of the executed command.
    * @param {string} [verboseResult] Optional formatted result for verbose mode.
    */
-  const addToHistory = (command: string, result: string, verboseResult?: string) => {
-    setHistory((history) => [...history, { command, result, verboseResult: verboseResult || result }]);
+  const addToHistory = (
+    command: string,
+    result: string,
+    verboseResult?: string
+  ) => {
+    setHistory((history) => [
+      ...history,
+      { command, result, verboseResult: verboseResult || result },
+    ]);
   };
 
   return (
@@ -166,7 +180,11 @@ const App: React.FC = () => {
         <div>
           <h1>Mock</h1>
           <h2>[You are logged in]</h2>
-          <h3> Welcome! In the command line below, you can load, view, and search a given file:</h3>
+          <h3>
+            {" "}
+            Welcome! In the command line below, you can load, view, and search a
+            given file:
+          </h3>
           <CommandInput
             command={command}
             onCommandChange={handleCommandInput}
