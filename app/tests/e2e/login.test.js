@@ -28,8 +28,4 @@ test.describe('Command Prompt Interface Application', () => {
     // Ensure the command was not executed (i.e., no result in history)
     await expect(page.locator('text=mode brief')).not.toBeVisible();
   });
-  
-  
-
-
 });
