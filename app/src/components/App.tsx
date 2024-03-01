@@ -3,7 +3,7 @@ import { CommandHandler } from "./CommandHandler";
 import CommandInput from "./CommandInput";
 import CommandHistory from "./CommandHistory";
 import DisplayData from "./DisplayData";
-import { mockedData, CsvData } from "../components/MockedJson"; // Ensure CsvData is correctly imported with its new flexible definition
+import { mockedData, CsvData } from "../components/MockedJson";
 
 // Other imports and utility functions...
 /**
