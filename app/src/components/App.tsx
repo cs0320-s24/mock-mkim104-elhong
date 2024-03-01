@@ -5,6 +5,7 @@ import CommandHistory from "./CommandHistory";
 import DisplayData from "./DisplayData";
 import { mockedData, CsvData } from "../components/MockedJson";
 
+// Other imports and utility functions...
 /**
  * Checks if a given key is a valid key of the current CSV data. We need this so it can work flexibly with
  * different CSVs with different keys and columns.
@@ -23,16 +24,18 @@ function isKeyOfCurrentData(
  * The main application component that provides a command prompt interface for interacting with CSV data.
  */
 const App: React.FC = () => {
-  const [command, setCommand] = useState("");
-  const [history, setHistory] = useState<
-    Array<{ command: string; result: string }>
-  >([]);
-  const [mode, setMode] = useState("brief");
-  const [currentData, setCurrentData] = useState<CsvData[]>([]);
-  const [searchResults, setSearchResults] = useState<CsvData[]>([]);
-  const [isLoggedin, setIsLoggedIn] = useState(false);
-  const commandHandler = new CommandHandler();
+    const [command, setCommand] = useState("");
+    const [history, setHistory] = useState<
+      Array<{ command: string; result: string, verboseResult?: string }>
+    >([]);
+    const [mode, setMode] = useState("brief");
+    const [currentData, setCurrentData] = useState<CsvData[]>([]);
+    const [searchResults, setSearchResults] = useState<CsvData[]>([]);
+    const [isLoggedin, setIsLoggedIn] = useState(false);
+    const [dataLoaded, setDataLoaded] = useState(false); // Add state to track if data has been loaded
+    const commandHandler = new CommandHandler();
 
+  
   /**
    * Handler for the login button.
    */
@@ -64,24 +67,27 @@ const App: React.FC = () => {
 
     // Registering the load file command
     commandHandler.registerCommand("load_file", (args: Array<string>) => {
-      const filePath = args[0];
-      const data = mockedData[filePath];
-      if (data) {
-        setCurrentData(data);
-        // Do not clear searchResults here to allow 'view' command to control the display
-        return `Loaded data from ${filePath}`;
-      } else {
-        return "File not found";
-      }
-    });
-
-    // Registering the view command
-    commandHandler.registerCommand("view", () => {
-      setSearchResults(currentData);
-      // Display the loaded data by setting searchResults to currentData
-      return "Displaying loaded data...";
-    });
-
+        const filePath = args[0];
+        const data = mockedData[filePath];
+        if (data) {
+          setCurrentData(data);
+          setDataLoaded(true); // Set dataLoaded to true when data is successfully loaded
+          return `Loaded data from ${filePath}`;
+        } else {
+          setDataLoaded(false); // Optionally set to false if load fails, depending on desired behavior
+          return "File not found";
+        }
+      });
+      // Registering the view  command
+      commandHandler.registerCommand("view", () => {
+          if (!dataLoaded) { // Check if data has been loaded instead of checking currentData's length
+            return "No file has been loaded yet.";
+          } else {
+            setSearchResults(currentData);
+            return "Displaying loaded data...";
+          }
+      });
+    
     // Registering the search command
     commandHandler.registerCommand("search", (args: Array<string>) => {
       const regex = /^search (\w+)\s+(.+)$/;
@@ -118,23 +124,36 @@ const App: React.FC = () => {
     const parts = command.split(' '); 
     const commandName = parts.shift() || '';
     const args = parts; 
-    const output = commandHandler.executeCommand(commandName, args);
-    setHistory(history => 
-        [...history, { command, result: typeof output === 'string' ? output : '' }]); 
-        setCommand(''); 
-      
-    addToHistory(command, await output);
-    setCommand('');
+  
+    // Check if the command is registered
+    if (commandHandler.isCommandRegistered(commandName)) {
+      const outputPromise = commandHandler.executeCommand(commandName, args);
+      const output = await outputPromise; // Adjust based on the actual implementation
+  
+      if (mode === "verbose") {
+        // In verbose mode, add both command and output to history, displayed on separate lines
+        addToHistory(command, output, `Command: ${command}\nOutput: ${output}`);
+      } else {
+        // In brief mode, just add the output
+        addToHistory(command, output);
+      }
+    } else {
+      // Handle unregistered commands by adding a specific message to the history
+      const errorMessage = "Unrecognized command";
+      addToHistory(command, errorMessage, `Command: ${command}\nOutput: ${errorMessage}`);
+    }
+    setCommand(''); 
   };
+  
 
-        
   /**
-   * Adds the executed command and its result to the history.
+   * Adds the executed command and its result to the history, with optional verbose formatting.
    * @param {string} command The command that was executed.
    * @param {string} result The result of the executed command.
+   * @param {string} [verboseResult] Optional formatted result for verbose mode.
    */
-  const addToHistory = (command: string, result: string) => {
-    setHistory((history) => [...history, { command, result }]);
+  const addToHistory = (command: string, result: string, verboseResult?: string) => {
+    setHistory((history) => [...history, { command, result, verboseResult: verboseResult || result }]);
   };
 
   return (
