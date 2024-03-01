@@ -126,18 +126,27 @@ const App: React.FC = () => {
     const parts = command.split(' '); 
     const commandName = parts.shift() || '';
     const args = parts; 
-    const outputPromise = commandHandler.executeCommand(commandName, args);
-    const output = await outputPromise; // Adjust based on the actual implementation
-
-    if (mode === "verbose") {
-      // In verbose mode, add both command and output to history, displayed on separate lines
-      addToHistory(command, output, `Command: ${command}\nOutput: ${output}`);
+  
+    // Check if the command is registered
+    if (commandHandler.isCommandRegistered(commandName)) {
+      const outputPromise = commandHandler.executeCommand(commandName, args);
+      const output = await outputPromise; // Adjust based on the actual implementation
+  
+      if (mode === "verbose") {
+        // In verbose mode, add both command and output to history, displayed on separate lines
+        addToHistory(command, output, `Command: ${command}\nOutput: ${output}`);
+      } else {
+        // In brief mode, just add the output
+        addToHistory(command, output);
+      }
     } else {
-      // In brief mode, just add the output
-      addToHistory(command, output);
+      // Handle unregistered commands by adding a specific message to the history
+      const errorMessage = "Unrecognized command";
+      addToHistory(command, errorMessage, `Command: ${command}\nOutput: ${errorMessage}`);
     }
     setCommand(''); 
   };
+  
 
   /**
    * Adds the executed command and its result to the history, with optional verbose formatting.
