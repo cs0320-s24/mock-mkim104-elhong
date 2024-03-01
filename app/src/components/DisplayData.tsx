@@ -1,27 +1,25 @@
 import React from 'react';
 
-/** Represents the structure of CSV data. */
-interface CsvData {
-  id: number;
-  address: string;
-  value: string;
-}
-
 /** Represents props for the DisplayData component. */
 interface DisplayDataProps {
-  data: CsvData[];
+  data: any[]; // Use 'any[]' to accept a wide range of data structures
+}
+
+/**
+ * Type guard to check if a value is a Record.
+ */
+function isRecord(value: any): value is Record<string, any> {
+  return typeof value === 'object' && value !== null;
 }
 
 /**
  * Renders CSV data in a table format.
- * @param {DisplayDataProps} data The CSV data to be displayed.
- * @returns {JSX.Element} The rendered table containing the CSV data.
  */
 const DisplayData: React.FC<DisplayDataProps> = ({ data }) => {
   if (data.length === 0) return <p>Please load and view a csv.</p>;
 
-  // Extract column headers
-  const headers = Object.keys(data[0]);
+  // Dynamically determine headers from the first item, if available
+  const headers = data.length > 0 && isRecord(data[0]) ? Object.keys(data[0]) : [];
 
   return (
     <table>
@@ -36,7 +34,7 @@ const DisplayData: React.FC<DisplayDataProps> = ({ data }) => {
         {data.map((row, index) => (
           <tr key={index}>
             {headers.map((header) => (
-              <td key={`${index}-${header}`}>{row[header as keyof CsvData]}</td>
+              <td key={`${index}-${header}`}>{isRecord(row) ? row[header] : ''}</td>
             ))}
           </tr>
         ))}
